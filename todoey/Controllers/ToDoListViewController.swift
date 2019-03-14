@@ -7,30 +7,23 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoListViewController: UITableViewController {
     
+   
     var itemArray = [Item]()
-    //var itemDictionary = [String: String]()
-    
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        .first?.appendingPathComponent("Items.plist")
-
-    
-    //let defaults = UserDefaults.standard
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
         
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        print(dataFilePath!)
-        
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+                
         loadItems()
-        
-//        if let items = defaults.array(forKey: "ToDoeyListArray") as? [String]{
-//            itemArray = items
-//        }
+
 
     }
     
@@ -38,8 +31,6 @@ class ToDoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
-    
-    
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
@@ -59,16 +50,15 @@ class ToDoListViewController: UITableViewController {
     
     //MARK - Tableview Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        //print(itemArray[indexPath.row])
+        
+//        context.delete(itemArray[indexPath.row])
+//        itemArray.remove(at: indexPath.row)
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
         saveData()
-
         
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        
     }
 
         //MARK - add New Items
@@ -86,10 +76,10 @@ class ToDoListViewController: UITableViewController {
         }
         
         let action = UIAlertAction(title: "Add item", style: .default) { (action) in
-            // what will happen once the user clicks the addItem buttom on the UIAlert
             
-            let newItem = Item()
+            let newItem = Item(context: self.context)
             newItem.title = textField.text!
+            newItem.done = false
             self.itemArray.append(newItem)
             
             self.saveData()
@@ -102,28 +92,35 @@ class ToDoListViewController: UITableViewController {
     }
     
     func saveData(){
-        let encoder = PropertyListEncoder()
         
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+           try context.save()
         } catch {
-            print("Error encoding itemArray, \(error)")
+            print("Error saving context \(error)")
         }
         
         tableView.reloadData()
     }
     
     func loadItems(){
-        
-        if let data = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()
-            do {
-                itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("Error decoding itemArray, \(error)")
-            }
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        do {
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error reading context \(error)")
         }
     }
+    
+    
+}
+
+//MARK:- Search Bar Methods
+extension ToDoListViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        print(searchBar.text!)
+    }
+    
 }
 

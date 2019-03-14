@@ -2,21 +2,18 @@
 //  Item.swift
 //  todoey
 //
-//  Created by Adi on 2019-03-12.
+//  Created by Adi on 2019-03-13.
 //  Copyright © 2019 Adi. All rights reserved.
 //
 
 import Foundation
+import CoreData
 
-class Item : Codable{
-
-    var title : String = ""
-    var done : Bool = false
+public class Item: NSManagedObject {
     
-//    init(theTitle : String, isDone : Bool){
-//        title = theTitle
-//        done = isDone
-//    }
+        
+        //var title: String = ""
+        //var done: Bool = false
     
     
 }
